@@ -36,7 +36,8 @@ def start_recording():
         except Exception:
             pass
 
-    proc = subprocess.Popen(["pw-record", WAV_FILE])
+    # CRITICO: start_new_session=True evita que GNOME mate a pw-record cuando finaliza el proceso padre
+    proc = subprocess.Popen(["pw-record", WAV_FILE], start_new_session=True)
     with open(PID_FILE, "w") as f:
         f.write(str(proc.pid))
     
@@ -52,16 +53,16 @@ def stop_recording():
 
     try:
         pid = int(pid_str)
-        # 1. Enviar señal SIGINT para pedir a pw-record que guarde y cierre el archivo
+        # 1. Pedir a pw-record que guarde y termine
         os.kill(pid, signal.SIGINT)
 
-        # 2. Esperar A QUE EL PROCESO pw-record REALMENTE TERMINE de volcar el WAV (hasta 2.5s)
-        for _ in range(25):
+        # 2. Esperar a que pw-record termine limpiamente de volcar el archivo a disco
+        for _ in range(30):
             try:
                 os.kill(pid, 0)
                 time.sleep(0.1)
             except OSError:
-                break # El proceso ya cerró y escribió el archivo WAV completo
+                break
     except Exception:
         pass
 
@@ -72,7 +73,7 @@ def stop_recording():
 
     notify("⚡ Transcribiendo...", "Procesando audio...", 1200)
 
-    # 3. Verificar que el archivo WAV final tenga contenido real
+    # 3. Verificar el archivo final
     if not os.path.exists(WAV_FILE) or os.path.getsize(WAV_FILE) <= 44:
         notify("⚠️ Info", "Grabación muy corta (menos de 0.1s)", 1200)
         return
