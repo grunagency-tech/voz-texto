@@ -30,8 +30,9 @@ def auto_paste(text):
     subprocess.run(["ydotool", "key", "--delay", "50", "ctrl+shift+v"], stderr=subprocess.DEVNULL)
 
 def start_recording():
-    # Asegurar que el perfil del Yeti esté SIEMPRE en entrada analógica y no caiga en IEC958 digital
+    # AUTO-HEAL: Forzar perfil analógico y fuente por defecto en el Blue Yeti antes de grabar
     subprocess.run(["pactl", "set-card-profile", "alsa_card.usb-Generic_Blue_Microphones_2113BAB0DLD8-00", "output:analog-stereo+input:analog-stereo"], stderr=subprocess.DEVNULL)
+    subprocess.run(["wpctl", "set-default", "alsa_input.usb-Generic_Blue_Microphones_2113BAB0DLD8-00.analog-stereo"], stderr=subprocess.DEVNULL)
 
     if os.path.exists(WAV_FILE):
         try:
