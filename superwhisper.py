@@ -22,12 +22,11 @@ def auto_paste(text):
     except Exception:
         pass
 
-    # 2. Esperar 300ms a que el usuario haya soltado la tecla Windows/Super del atajo
+    # 2. Esperar a que se libere la tecla Super
     time.sleep(0.35)
 
     # 3. Pegar usando ydotool
     subprocess.run(["ydotool", "key", "--delay", "50", "ctrl+v"], stderr=subprocess.DEVNULL)
-    # Respaldo para terminales que usan Ctrl+Shift+V
     subprocess.run(["ydotool", "key", "--delay", "50", "ctrl+shift+v"], stderr=subprocess.DEVNULL)
 
 def start_recording():
@@ -63,10 +62,15 @@ def stop_recording():
         pass
 
     notify("⚡ Transcribiendo...", "Procesando audio...", 1200)
-    time.sleep(0.2)
+    
+    # Esperar a que pw-record termine de volcar el archivo al disco (máx 0.5s)
+    for _ in range(10):
+        if os.path.exists(WAV_FILE) and os.path.getsize(WAV_FILE) > 44:
+            break
+        time.sleep(0.05)
 
-    if not os.path.exists(WAV_FILE) or os.path.getsize(WAV_FILE) < 1000:
-        notify("⚠️ Info", "Grabación muy corta", 1200)
+    if not os.path.exists(WAV_FILE) or os.path.getsize(WAV_FILE) <= 44:
+        notify("⚠️ Info", "Grabación muy corta (menos de 0.1s)", 1200)
         return
 
     try:
