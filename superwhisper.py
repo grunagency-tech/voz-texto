@@ -30,13 +30,16 @@ def auto_paste(text):
     subprocess.run(["ydotool", "key", "--delay", "50", "ctrl+shift+v"], stderr=subprocess.DEVNULL)
 
 def start_recording():
+    # Asegurar que el perfil del Yeti esté SIEMPRE en entrada analógica y no caiga en IEC958 digital
+    subprocess.run(["pactl", "set-card-profile", "alsa_card.usb-Generic_Blue_Microphones_2113BAB0DLD8-00", "output:analog-stereo+input:analog-stereo"], stderr=subprocess.DEVNULL)
+
     if os.path.exists(WAV_FILE):
         try:
             os.remove(WAV_FILE)
         except Exception:
             pass
 
-    # CRITICO: start_new_session=True evita que GNOME mate a pw-record cuando finaliza el proceso padre
+    # start_new_session=True evita que el proceso de inicio se mate al salir la macro de GNOME
     proc = subprocess.Popen(["pw-record", WAV_FILE], start_new_session=True)
     with open(PID_FILE, "w") as f:
         f.write(str(proc.pid))
