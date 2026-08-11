@@ -11,8 +11,8 @@ Ideal para dictar prompts a **AGY, Claude Code, OpenCode, VS Code, Slack o naveg
 Clona este repositorio y corre el instalador:
 
 ```bash
-git clone https://github.com/grunagency-tech/groon-voz-a-texto.git
-cd groon-voz-a-texto
+git clone https://github.com/grunagency-tech/voz-texto.git
+cd voz-texto
 ./install.sh
 ```
 
