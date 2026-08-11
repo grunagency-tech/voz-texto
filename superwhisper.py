@@ -22,7 +22,7 @@ def auto_paste(text):
     except Exception:
         pass
 
-    # 2. Esperar a que se libere la tecla Super
+    # 2. Esperar a que el usuario suelte la tecla Windows/Super (350ms)
     time.sleep(0.35)
 
     # 3. Pegar usando ydotool
@@ -52,7 +52,16 @@ def stop_recording():
 
     try:
         pid = int(pid_str)
+        # 1. Enviar señal SIGINT para pedir a pw-record que guarde y cierre el archivo
         os.kill(pid, signal.SIGINT)
+
+        # 2. Esperar A QUE EL PROCESO pw-record REALMENTE TERMINE de volcar el WAV (hasta 2.5s)
+        for _ in range(25):
+            try:
+                os.kill(pid, 0)
+                time.sleep(0.1)
+            except OSError:
+                break # El proceso ya cerró y escribió el archivo WAV completo
     except Exception:
         pass
 
@@ -62,13 +71,8 @@ def stop_recording():
         pass
 
     notify("⚡ Transcribiendo...", "Procesando audio...", 1200)
-    
-    # Esperar a que pw-record termine de volcar el archivo al disco (máx 0.5s)
-    for _ in range(10):
-        if os.path.exists(WAV_FILE) and os.path.getsize(WAV_FILE) > 44:
-            break
-        time.sleep(0.05)
 
+    # 3. Verificar que el archivo WAV final tenga contenido real
     if not os.path.exists(WAV_FILE) or os.path.getsize(WAV_FILE) <= 44:
         notify("⚠️ Info", "Grabación muy corta (menos de 0.1s)", 1200)
         return
